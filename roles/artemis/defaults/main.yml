@@ -371,6 +371,16 @@ artemis_llm_cost:
     output_cost_per_million_eur: 27.60
 
 ##############################################################################
+# Artemis module feature flags
+##############################################################################
+# Switch individual Artemis modules off (artemis.<module>.enabled). Keys not listed keep the
+# Artemis default (enabled). Allowed keys: lecture, tutorialgroup, text, modeling, fileupload,
+# exam, plagiarism.
+#artemis_modules:
+#  exam: false
+#  tutorialgroup: false
+
+##############################################################################
 # CORS Configuration
 ##############################################################################
 #artemis_CORS_allowed_origins: "*"

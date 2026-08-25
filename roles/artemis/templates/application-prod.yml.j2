@@ -358,6 +358,12 @@ artemis:
     enabled: true
     conversion-service-url: {{ apollon_url }}
 {% endif %}
+{% if artemis_modules is defined and artemis_modules is not none %}
+{% for module_key, module_enabled in artemis_modules.items() %}
+  {{ module_key }}:
+    enabled: {{ module_enabled | lower }}
+{% endfor %}
+{% endif %}
   scheduling:
     data-export-creation-time: {{ artemis_scheduling_data_export_creation_time }}
     programming-exercises-cleanup-time: {{ artemis_scheduling_programming_exercises_cleanup_time }}

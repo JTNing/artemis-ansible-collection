@@ -158,6 +158,18 @@ artemis.hyperion.enabled
 
 > The `spring_ai.azure_openai.*` inventory variables render the unified `spring.ai.openai.*` properties; the variable namespace is kept for backward compatibility.
 
+Module feature flags:
+
+Switch individual Artemis modules off via `artemis_modules`, a dict of module keys to booleans (sets `artemis.<key>.enabled`). Allowed keys: `lecture`, `tutorialgroup`, `text`, `modeling`, `fileupload`, `exam`, `plagiarism`. Only keys present in the dict are rendered; absent keys keep the Artemis default (enabled), so an inventory that never sets the variable is unaffected.
+
+```yaml
+artemis_modules:
+  exam: false
+  tutorialgroup: false
+```
+
+Changing the dict re-renders the configuration and restarts the Artemis stack. Disabling a module hides it in Artemis without deleting its data; the data returns when the module is re-enabled.
+
 Iris configuration:
 ```
 iris:

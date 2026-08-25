@@ -47,6 +47,22 @@
   when:
     - artemis_llm_cost is defined
 
+# The env and YAML templates render one flag per key present in artemis_modules, so an unknown key
+# (for example a typo) would render nothing and report success. Fail fast instead, in all paths,
+# before any template is rendered.
+- name: Assert artemis_modules uses known module keys with boolean values
+  ansible.builtin.assert:
+    that:
+      - artemis_modules is mapping
+      - artemis_modules.keys() | difference(artemis_module_keys) | length == 0
+      - artemis_modules.values() | reject('boolean') | list | length == 0
+    fail_msg: >-
+      artemis_modules may only contain the keys {{ artemis_module_keys | join(', ') }}
+      with boolean values (got keys {{ artemis_modules.keys() | list | join(', ') }}).
+  when:
+    - artemis_modules is defined
+    - artemis_modules is not none
+
 # Check if variables are set correctly
 - include_tasks: variable_checks.yml
   when: (setup_system | bool) or (update_artemis_config | bool)

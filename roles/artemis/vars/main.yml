@@ -1,2 +1,6 @@
 ---
 # vars file for artemis
+
+# Allowed keys of the artemis_modules inventory variable (the Artemis module feature
+# flags artemis.<key>.enabled). Role vars so an inventory cannot override the list.
+artemis_module_keys: [lecture, tutorialgroup, text, modeling, fileupload, exam, plagiarism]
