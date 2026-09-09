@@ -34,13 +34,7 @@ spring:
 {% endif %}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    # readOnlyPropagatesToServer=false keeps Connection.setReadOnly() on the client. Spring Data JPA marks every
-    # repository read method read-only, so without this the driver sends SET SESSION TRANSACTION READ ONLY before the
-    # query and READ WRITE after it. Measured on staging: 5.7 such round trips per request, 1.1 million over a single
-    # 2000 student run, and removing them took total database round trips per request from 41.3 to 35.0. What is given
-    # up is InnoDB's read-only transaction optimisation, which is worth far less than two round trips per query.
-    # Only safe while reads and writes go to the same server; revisit if read replicas are introduced.
-    url: jdbc:{{ artemis_database_type }}://{{ artemis_database_host }}:{{ artemis_database_port }}/{{ artemis_database_dbname }}?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC{% if artemis_database_type == 'mysql' %}&readOnlyPropagatesToServer=false{% endif %}
+    url: jdbc:postgresql://{{ artemis_database_host }}:{{ artemis_database_port }}/{{ artemis_database_dbname }}?sslmode=disable
     username: {{ artemis_database_username }}
     password: {{ artemis_database_password }}
     hikari:
@@ -64,12 +58,10 @@ spring:
   jpa:
     # Hibernate auto-detects the dialect from JDBC DatabaseMetaData by default. Artemis disables that probe in
     # production (hibernate.boot.allow_jdbc_metadata_access=false) to speed up startup, so the dialect must be set
-    # explicitly. Derive it from the configured database type (MySQL support is being phased out).
-    database: {{ 'MYSQL' if artemis_database_type == 'mysql' else ('POSTGRESQL' if artemis_database_type == 'postgresql' else artemis_database_type | upper) }}
+    # explicitly.
+    database: postgresql
     hibernate:
       connection:
-        charSet: {{ artemis_database_encoding }}
-        characterEncoding: {{ artemis_database_encoding }}
         useUnicode: true
 {% if is_multinode_install and broker is defined %}
   websocket:
@@ -80,14 +72,14 @@ spring:
 {% endif %}
 {% endif %}
 
-{% if redis is defined and redis is not none %}
+{% if valkey is defined and valkey is not none %}
   data:
     redis:
-      host: {{ redis.host }}
-      port: {{ redis.port }}
-      username: {{ redis.username }}
-      password: {{ redis.password }}
-      client-name: {{ artemis_redis_client_name }}
+      host: {{ valkey.host }}
+      port: {{ valkey.port }}
+      username: {{ valkey.username }}
+      password: {{ valkey.password }}
+      client-name: {{ artemis_valkey_client_name }}
 {% endif %}
 
 {% if is_multinode_install and hazelcast_address is defined %}
@@ -188,8 +180,22 @@ artemis:
 {% if artemis_rate_limit is defined and artemis_rate_limit is not none %}
   rate-limiting:
     enabled: true
-    account-management-rpm: {{ artemis_rate_limit.account_management_rpm }}
-    authentication-rpm: {{ artemis_rate_limit.authentication_rpm }}
+    # Artemis binds these as RateLimitingProperties.accountManagementRequestsPerMinute and
+    # .authenticationRequestsPerMinute. The short "-rpm" spellings used here before bound to nothing at
+    # all, in Artemis 10 and in 9.9.1 alike, so a server silently ran on the built-in defaults whatever
+    # these were set to.
+    account-management-requests-per-minute: {{ artemis_rate_limit.account_management_rpm }}
+    authentication-requests-per-minute: {{ artemis_rate_limit.authentication_rpm }}
+{% if artemis_rate_limit.exempt_addresses is defined and artemis_rate_limit.exempt_addresses %}
+    # Addresses that consume no tokens at all, rather than getting a larger budget. The limits are per
+    # client address, which is the right shape for one abusive client and the wrong shape for a load
+    # generator: it drives a whole cohort of logins from a single host and would be throttled within
+    # seconds, so the run would measure the limiter instead of Artemis. Single addresses or CIDR ranges.
+    exempt-addresses:
+{% for address in artemis_rate_limit.exempt_addresses %}
+      - "{{ address }}"
+{% endfor %}
+{% endif %}
 {% endif %}
   user-management:
 {% if ldap.url is defined and ldap.url is not none%}
@@ -328,7 +334,7 @@ artemis:
 {% endif %}
 {% endif %}
     specify-concurrent-builds: {{ (continuous_integration.localci.concurrent_build_size is defined) | lower }}
-{% if redis is defined and redis is not none %}
+{% if valkey is defined and valkey is not none %}
     data-store: "Redis"
 {% endif %}
 {% if continuous_integration.localci.concurrent_build_size is defined %}

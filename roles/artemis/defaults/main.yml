@@ -81,16 +81,36 @@ artemis_war_url: "https://github.com/ls1intum/Artemis/releases/download/{{ artem
 
 artemis_branch: develop
 
-artemis_system_ram_proportion: 0.8 # How much % of the system RAM to allocate to the Artemis service (Default here: 80%)
+# Ceiling on the Java heap as a share of system RAM. Applies on hosts with enough memory that the fixed reserve below
+# is not the binding constraint, which is everything above roughly 6.4 GB.
+artemis_system_ram_proportion: 0.8
 
-artemis_database_type: mysql # The type of the database used. Used in the JDBC URL (Default of Artemis is currently mysql)
+# Memory the heap must leave for everything else on the host, in MB.
+#
+# A proportion alone is the wrong model, because most of what the heap has to leave room for does not scale with the
+# machine. Measured on an idle Artemis 10 node: 840 MB resident outside the heap - 277 MB metaspace, 35 MB compressed
+# class space, plus code cache, 164 thread stacks, GC structures and netty's direct buffers. On top of that the host
+# needs page cache, which for a node serving git repositories off NFS is not optional.
+#
+# Getting this wrong is not a slow degradation, it is swapping. On a 3867 MB staging node the 80% proportion asked for
+# a 3093 MB heap; 3093 + 840 exceeds the machine before the OS has anything at all, and all three nodes sat on about
+# 1 GB of swap each, one of them down to 63 MB available memory during an exam. That shows up as iowait, not as a
+# memory error, so it is easy to misread as slow storage.
+#
+# 1280 MB is the measured 840 plus room for the OS and some page cache.
+artemis_heap_reserve_mb: 1280
+
+# netty samples buffer allocations to detect leaks, and each sample allocates a Throwable to capture where the buffer
+# came from. On a node under exam load that is pure overhead: one 2000-student benchmark run recorded 179,032 of these
+# records. Set to "simple" (netty's own default) or "paranoid" when actually hunting a buffer leak.
+artemis_netty_leak_detection_level: disabled
+artemis_database_max_pool_size: 30
+
 artemis_database_host: localhost
-artemis_database_port: 3306 # The port that the database is reachable on (MySQL default: 3306)
+artemis_database_port: 5432 # The port that the database is reachable on (Postgres default: 5432)
 artemis_database_dbname: artemis
 artemis_database_username: artemis
 artemis_database_password: #FIXME
-artemis_database_encoding: utf8mb4 # MySQL specific default encoding
-artemis_database_collation: utf8mb4_unicode_ci # MySQL specific default collation
 # apollon_url: https://apollon.ase.in.tum.de
 artemis_bcrypt_salt_rounds: 11
 
@@ -274,12 +294,14 @@ artemis_eureka_urls: "{% if registry.url is defined and registry.url is not none
   %}"
 artemis_eureka_instance_id: "{{ node_id }}"
 
-artemis_redis_client_name: "{{ artemis_eureka_instance_id }}"
+artemis_valkey_client_name: "{{ artemis_eureka_instance_id }}"
 
 node_short_name: unnamed-artemis-node
 node_display_name: Unnamed Artemis Node
 
-#redis:
+# Connection details of the host running the `valkey` role. `host` is that
+# host's WireGuard address, unbracketed - Spring adds the brackets itself.
+#valkey:
 #  host:
 #  port:
 #  username:
@@ -414,6 +436,14 @@ artemis_internal_ip_allowlist: []
 #artemis_rate_limit:
 #  account_management_rpm: 5
 #  authentication_rpm: 30
+#  # Addresses that consume no tokens at all, rather than getting a larger budget. Single addresses or
+#  # CIDR ranges, in either family. Intended for a load generator, which drives a whole cohort of logins
+#  # from one host and would otherwise be throttled within seconds -- the run would then measure the
+#  # limiter rather than Artemis. List both families for a dual-stack host: the exemption matches the
+#  # address Artemis actually sees.
+#  exempt_addresses:
+#    - "131.159.89.112"
+#    - "2a09:80c0:89::112"
 
 ##############################################################################
 # Helios Configuration
