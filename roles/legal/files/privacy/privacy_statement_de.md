@@ -57,7 +57,7 @@ Für die optionalen KI-gestützten Funktionen (Iris, Athena) werden, sofern Nutz
 
 ### Dauer der Speicherung der personenbezogenen Daten
 
-Ihre Daten werden nur so lange gespeichert, wie dies unter Beachtung gesetzlicher Aufbewahrungsfristen zur Aufgabenerfüllung erforderlich ist. Konkrete Speicherfristen für die einzelnen Verarbeitungsvorgänge finden Sie in den jeweiligen Abschnitten unten.
+Ihre Daten werden nur so lange gespeichert, wie dies unter Beachtung gesetzlicher Aufbewahrungsfristen zur Aufgabenerfüllung erforderlich ist. Konkrete Speicherfristen für die einzelnen Verarbeitungsvorgänge finden Sie in den jeweiligen Abschnitten unten. Sobald die für einen Kurs geltende Aufbewahrungsfrist abgelaufen ist, werden die personenbezogenen Daten dieses Kurses (etwa Teilnahmen, Abgaben, Ergebnisse, Feedback und Plagiatsfälle) automatisch gelöscht, während die Kursstruktur und die Lehrmaterialien erhalten bleiben.
 
 ### Ihre Rechte
 
@@ -116,6 +116,7 @@ Die Verarbeitung der Daten in dieser Logdatei kann wie folgt geschehen:
 
 * Die Logeinträge können kontinuierlich und automatisch ausgewertet werden, um Angriffe auf die Webserver erkennen und entsprechend reagieren zu können.
 * In Einzelfällen, d.h. bei gemeldeten Störungen, Fehlern und Sicherheitsvorfällen, kann eine manuelle Analyse erfolgen.
+* Die Protokolle der Artemis-Server, die auch die Kennung angemeldeter Personen enthalten können, werden täglich automatisiert auf technische Fehler ausgewertet, um die Stabilität und Verfügbarkeit der Plattform sicherzustellen. Vor jeder weiteren Verarbeitung werden dabei alle personenbezogenen Angaben (z. B. Kennungen, IP-Adressen, E-Mail-Adressen und IDs) entfernt, und es werden nur zusammengefasste Fehlertypen und deren Häufigkeit ausgewertet. Die Ergebnisse enthalten keine personenbezogenen Daten und sind nur dem Entwicklungsteam von Artemis zugänglich. Soweit für die Auswertung externe Dienste eingesetzt werden, erhalten diese ausschließlich die bereinigten Ergebnisse.
 
 **Speicherdauer:** Logdateien werden nach 90 Tagen automatisch gelöscht, sofern sie nicht zur Aufklärung eines konkreten Sicherheitsvorfalls benötigt werden.
 
@@ -150,7 +151,7 @@ Die Verbindung zum LDAP-Server ist verschlüsselt (LDAPS/StartTLS), und die gesa
 
 Zusätzlich bietet Artemis **Passkeys** (WebAuthn/FIDO2) als passwortlose, phishing-resistente und datensparsame Authentifizierungsmethode an. Bei Verwendung eines Passkeys wird kein Passwort an den LDAP-Server übermittelt. Die Nutzung ist optional; Benutzername und Passwort bleiben als Alternative verfügbar. 
 
-**Speicherdauer:** Benutzername, Name, E-Mail-Adresse und Matrikelnummer werden für die Dauer der Nutzung der Plattform gespeichert. Bei Exmatrikulation oder auf Antrag werden diese Daten gelöscht, soweit keine gesetzlichen Aufbewahrungsfristen entgegenstehen. Soweit Stammdaten zur Zuordnung prüfungs- oder bewertungsrelevanter Unterlagen erforderlich sind, können sie zusammen mit diesen Unterlagen gemäß den gesetzlichen Aufbewahrungsfristen für bis zu 5 Jahre nach Ende des jeweiligen relevanten Semesters gespeichert bleiben.
+**Speicherdauer:** Benutzername, Name, E-Mail-Adresse und Matrikelnummer werden für die Dauer der Nutzung der Plattform gespeichert. Bei Exmatrikulation oder auf Antrag werden diese Daten gelöscht, soweit keine gesetzlichen Aufbewahrungsfristen entgegenstehen. Soweit Stammdaten zur Zuordnung prüfungs- oder bewertungsrelevanter Unterlagen erforderlich sind, können sie zusammen mit diesen Unterlagen gemäß den gesetzlichen Aufbewahrungsfristen für bis zu 5 Jahre nach Ende des jeweiligen relevanten Semesters gespeichert bleiben. Um die gespeicherten Daten auf das notwendige Maß zu beschränken, wird der Zeitpunkt Ihrer letzten erfolgreichen Anmeldung gespeichert und ausschließlich dazu verwendet, inaktive Konten zu identifizieren. Wenn Sie in keinem Kurs eingeschrieben sind und sich über einen längeren Zeitraum nicht angemeldet haben, kann Ihr Benutzerkonto gelöscht werden, nachdem Sie per E-Mail benachrichtigt wurden und eine Übergangsfrist abgelaufen ist; durch eine erneute Anmeldung innerhalb dieser Frist wird die Löschung abgebrochen. Administratorkonten sind davon ausgenommen.
 
 ### Profilbilder
 
